@@ -1,0 +1,132 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+enum AgendaAction {
+  Poll
+  Transaction
+  Giveaway
+  Q_A
+  Custom
+}
+
+model User {
+  id            String        @id @default(cuid())
+  name          String?
+  email         String?       @unique
+  emailVerified DateTime?
+  image         String?
+  walletAddress String        @unique
+  points        Int?
+  tipCard       String?
+  accounts      Account[]
+  livestreams   LiveStream[]
+  transaction   Transaction[]
+  pollVotes     PollVote[] 
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model LiveStream {
+  id           String    @id @default(cuid())
+  name         String    @unique
+  userId       String
+  callType     String
+  scheduledFor DateTime?
+  hasHost      Boolean   @default(false)
+  agenda       Agenda[]
+  participants Participant[] 
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Transaction {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  signature String
+  createdAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Agenda {
+  id           String         @id @default(cuid())
+  liveStreamId String
+  timeStamp    Int
+  action       AgendaAction
+  details      AgendaDetails?
+
+  livestream LiveStream @relation(fields: [liveStreamId], references: [id])
+}
+
+model AgendaDetails {
+  id       Int      @id @default(autoincrement())
+  wallets  String[]
+  item     String?
+  agendaId String   @unique
+  agenda   Agenda   @relation(fields: [agendaId], references: [id], onDelete: Cascade)
+  pollVotes PollVote[]
+  totalVotes   Int          @default(0)
+}
+
+model PollVote {
+  id              Int           @id @default(autoincrement())
+  agendaDetails   AgendaDetails @relation(fields: [agendaDetailsId], references: [id])
+  agendaDetailsId Int
+  selectedOption  String        // The option (wallet) that was voted for
+  voter          User          @relation(fields: [voterId], references: [id])
+  voterId        String
+  createdAt      DateTime      @default(now())
+
+  @@unique([agendaDetailsId, voterId]) // Ensures one vote per user per poll
+  @@index([agendaDetailsId, selectedOption]) // Index for faster vote counting
+}
+
+
+model Participant {
+  id          String     @id @default(cuid())
+  liveStreamId String
+  userName    String    
+  walletAddress String  
+  userType    String    
+  joinedAt    DateTime   @default(now())
+  leftAt      DateTime?
+  liveStream  LiveStream @relation(fields: [liveStreamId], references: [id], onDelete: Cascade)
+}
+
+
+// model PollResponse {
+//   id         Int      @id @default(autoincrement())
+//   agendaId   Int      
+//   response   String
+//   respondent String 
+//   agenda     AgendaDetails @relation(fields: [agendaId], references: [id], onDelete: Cascade)
+// }
