@@ -13,7 +13,7 @@ import {
 import createSocketServer from "./websocket.js";
 
 const app = express();
-const port = 8001;
+const PORT = 8001;
 const httpServer = createServer(app);
 
 export const db = new PrismaClient();
@@ -46,6 +46,6 @@ app.all("*", (req: Request, res: Response) => {
   res.status(404).json({ error: `Route ${req.originalUrl} not found` });
 });
 
-httpServer.listen(port, () => {
-  console.log(`Server is listening on port ${port}`);
+httpServer.listen(PORT, () => {
+  console.log(`Server is listening on port ${PORT}`);
 });
