@@ -1,16 +1,14 @@
 import { Request, Response } from "express";
-import { AccessToken, RoomServiceClient } from "livekit-server-sdk";
+import {
+  AccessToken,
+  EgressClient,
+  EncodedFileOutput,
+  StreamOutput,
+  StreamProtocol,
+} from "livekit-server-sdk";
 import { AgendaAction } from "@prisma/client";
-import { db, io } from "../app.js";
-import { generateMeetingLink, isValidWalletAddress } from "../utils/index.js";
-import { guestRequests } from "../websocket.js";
-
-const livekitHost = process.env.LIVEKIT_API_HOST as string;
-const roomService = new RoomServiceClient(
-  livekitHost,
-  process.env.LIVEKIT_API_KEY,
-  process.env.LIVEKIT_API_SECRET
-);
+import { db } from "../app.js";
+import { generateMeetingLink, isValidWalletAddress, roomService, livekitHost  } from "../utils/index.js";
 
 async function generateUniqueStreamName(): Promise<string> {
   let isUnique = false;
@@ -133,12 +131,18 @@ export const createLiveStream = async (req: Request, res: Response) => {
 
 export const createStreamToken = async (req: Request, res: Response) => {
   const { roomName, userType, userName, wallet } = req.body;
-
   try {
     // Validate inputs
-    if (!roomName || !userName || !userType || !wallet || typeof wallet !== "string") {
+    if (
+      !roomName ||
+      !userName ||
+      !userType ||
+      !wallet ||
+      typeof wallet !== "string"
+    ) {
       return res.status(400).json({
-        error: "Missing required fields: room name, wallet, user type, and user name",
+        error:
+          "Missing required fields: room name, wallet, user type, and user name",
       });
     }
 
@@ -158,7 +162,7 @@ export const createStreamToken = async (req: Request, res: Response) => {
     }
 
     // Check if guest can join
-    if (userType === 'guest' && !existingStream.hasHost) {
+    if (userType === "guest" && !existingStream.hasHost) {
       return res.status(403).json({
         error: "Cannot join: Waiting for host to join the room",
       });
@@ -176,9 +180,10 @@ export const createStreamToken = async (req: Request, res: Response) => {
       if (existingParticipant.leftAt) {
         await db.participant.update({
           where: { id: existingParticipant.id },
-          data: { 
-            leftAt: null, 
-            userName: userName 
+          data: {
+            leftAt: null,
+            // userName: userName,
+            userType,
           },
         });
       }
@@ -193,13 +198,13 @@ export const createStreamToken = async (req: Request, res: Response) => {
       });
     }
 
-      // Update hasHost if this is a host joining
-      if (userType === 'host') {
-        await db.liveStream.update({
-          where: { id: existingStream.id },
-          data: { hasHost: true },
-        });
-      }
+    // Update hasHost if this is a host joining
+    if (userType === "host") {
+      await db.liveStream.update({
+        where: { id: existingStream.id },
+        data: { hasHost: true },
+      });
+    }
     // Generate token
     const accessToken = new AccessToken(
       process.env.LIVEKIT_API_KEY,
@@ -207,6 +212,11 @@ export const createStreamToken = async (req: Request, res: Response) => {
       {
         identity: userName,
         ttl: "60m",
+        metadata: JSON.stringify({
+          userName,
+          participantId: existingParticipant?.id,
+          userType,
+        }),
       }
     );
 
@@ -216,16 +226,17 @@ export const createStreamToken = async (req: Request, res: Response) => {
       canPublish: userType === "host" ? true : false,
       canSubscribe: true,
       canPublishData: true,
+      roomRecord: userType === "host" ? true : false,
     });
 
     const token = await accessToken.toJwt();
     res.status(200).json(token);
-
   } catch (error) {
     console.log(error);
     res.status(500).json({ error });
   }
 };
+
 export const getLiveStream = async (req: Request, res: Response) => {
   const { liveStreamId } = req.params;
 
@@ -255,34 +266,60 @@ export const getLiveStream = async (req: Request, res: Response) => {
   }
 };
 
-export const updateGuestPermissions = async (req: Request, res: Response) => {
-  const { participantId, roomName } = req.body;
-
-  io.to(roomName).emit("inviteGuest", { participantId, roomName });
+export const recordLiveStream = async (req: Request, res: Response) => {
+  const { roomName, userType, wallet } = req.body;
 
   try {
-    if (!roomName || !participantId) {
+    if (!roomName || !userType || !wallet || typeof wallet !== "string") {
       return res.status(400).json({
-        error: "Missing required fields: room name and participantId",
+        error:
+          "Missing required fields: room name, wallet, user type, and user name",
       });
     }
-
-    if (guestRequests[roomName]) {
-      guestRequests[roomName] = guestRequests[roomName].filter(
-        (req) => req.participantId !== participantId
-      );
-
-      io.to(roomName).emit("guestRequestsUpdate", guestRequests[roomName]);
+    if (!isValidWalletAddress(wallet)) {
+      return res.status(400).json({ error: "Invalid wallet address format." });
     }
+    const egressService = new EgressClient(
+      livekitHost,
+      process.env.LIVEKIT_API_KEY,
+      process.env.LIVEKIT_API_SECRET
+    );
 
-    await roomService.updateParticipant(roomName, participantId, undefined, {
-      canPublish: true,
-      canSubscribe: true,
-    });
-
-    res.status(200).json(`Invited participant ${participantId} to speak.`);
+    const output = {
+      file: new EncodedFileOutput({
+        filepath: "my-test-file.mp4",
+        output: {
+          case: "aliOSS",
+          value: {
+            accessKey: process.env.ALIOSS_ACCESSKEY_ID,
+            secret: process.env.ALIOSS_ACCESSKEY_SECRET,
+            bucket: process.env.ALIOSS_BUCKET,
+            endpoint: process.env.ALIOSS_ENDPOINT,
+            region: process.env.ALIOSS_REGION,
+          },
+        },
+      }),
+      stream: new StreamOutput({
+        protocol: StreamProtocol.RTMP,
+        urls: [],
+      }),
+    };
+    const testing = await egressService.startRoomCompositeEgress(
+      roomName,
+      output
+    );
+    console.log({ testing });
+    res.status(201).json(`Recording started successfully`);
   } catch (error) {
-    console.error("Failed to update participant permissions:", error);
+    console.log(error);
+    res.status(500).json({ error });
+  }
+};
+
+export const stopLiveStreamRecord = async (req: Request, res: Response) => {
+  try {
+  } catch (error) {
+    console.log(error);
     res.status(500).json({ error });
   }
 };

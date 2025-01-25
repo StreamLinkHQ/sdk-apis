@@ -5,7 +5,7 @@ import cors from "cors";
 import { AgendaRouter, LiveStreamRouter, PaymentRouter, UserRouter, ParticipantRouter, PollRouter } from "./routes/index.js";
 import createSocketServer from "./websocket.js";
 const app = express();
-const port = 8001;
+const PORT = 8001;
 const httpServer = createServer(app);
 export const db = new PrismaClient();
 // Move cors before other middleware
@@ -30,6 +30,6 @@ app.use("/user", UserRouter.default);
 app.all("*", (req, res) => {
     res.status(404).json({ error: `Route ${req.originalUrl} not found` });
 });
-httpServer.listen(port, () => {
-    console.log(`Server is listening on port ${port}`);
+httpServer.listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}`);
 });

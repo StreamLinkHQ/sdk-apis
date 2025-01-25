@@ -84,6 +84,7 @@ const createSocketServer = (server: HttpServer) => {
       currentRoom = roomName;
       currentIdentity = participantId;
     
+      io.to(roomName).emit("participantJoined", { participantId });
       // Initialize room state if it doesn't exist
       if (!roomStates[roomName]) {
         roomStates[roomName] = {
@@ -107,9 +108,9 @@ const createSocketServer = (server: HttpServer) => {
       // Update guest requests for all users in the room
       io.to(roomName).emit("guestRequestsUpdate", guestRequests[roomName]);
     });
-
-    socket.on("requestToSpeak", ({ participantId, name, roomName }) => {
-      const newRequest = { participantId, name };
+    
+    socket.on("requestToSpeak", ({ participantId, name, roomName, walletAddress }) => {
+      const newRequest = { participantId, name, walletAddress };
 
       if (!guestRequests[roomName].some(req => req.participantId === participantId)) {
         guestRequests[roomName].push(newRequest);
@@ -118,6 +119,13 @@ const createSocketServer = (server: HttpServer) => {
     });
 
     socket.on("inviteGuest", ({ participantId, roomName }) => {
+      guestRequests[roomName] = guestRequests[roomName].filter(
+        (req) => req.participantId !== participantId
+      );
+      io.to(roomName).emit("guestRequestsUpdate", guestRequests[roomName]);
+    });
+
+    socket.on("returnToGuest", ({ participantId, roomName }) => {
       guestRequests[roomName] = guestRequests[roomName].filter(
         (req) => req.participantId !== participantId
       );
@@ -133,6 +141,8 @@ const createSocketServer = (server: HttpServer) => {
 
     socket.on("disconnect", () => {
       if (currentRoom && currentIdentity) {
+        io.to(currentRoom).emit("participantLeft", { participantId: currentIdentity });
+
         // Remove participant from room state
         if (roomStates[currentRoom]) {
           roomStates[currentRoom].participants.delete(currentIdentity);

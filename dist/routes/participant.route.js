@@ -1,6 +1,8 @@
 import express from "express";
-import { getLiveStreamParticipants, updateLiveStreamParticipant, } from "../controllers/participant.controller.js";
+import { getStreamParticipants, updateStreamParticipantTime, updateGuestPermissions, updateTempHostPermissions } from "../controllers/participant.controller.js";
 const router = express.Router();
-router.get("/:liveStreamId", getLiveStreamParticipants);
-router.put("/:liveStreamId", updateLiveStreamParticipant);
+router.get("/:liveStreamId", getStreamParticipants);
+router.put("/:liveStreamId", updateStreamParticipantTime);
+router.post("/make-host", updateGuestPermissions);
+router.post("/make-guest", updateTempHostPermissions);
 export default router;
