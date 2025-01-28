@@ -59,7 +59,7 @@ model LiveStream {
   id           String    @id @default(cuid())
   name         String    @unique
   userId       String
-  // title        String
+  title        String
   callType     String
   scheduledFor DateTime?
   hasHost      Boolean   @default(false)

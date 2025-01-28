@@ -37,8 +37,8 @@ export const createLiveStream = async (req: Request, res: Response) => {
     if (
       !wallet ||
       typeof wallet !== "string" ||
-      !callType 
-      // || !title
+      !callType || 
+      !title
       // !Array.isArray(agendas) ||
       // agendas.length === 0
     ) {
@@ -88,7 +88,7 @@ export const createLiveStream = async (req: Request, res: Response) => {
     const liveStream = await db.liveStream.create({
       data: {
         name,
-        // title,
+        title,
         callType,
         scheduledFor: scheduledFor ? new Date(scheduledFor) : null,
         user: {
