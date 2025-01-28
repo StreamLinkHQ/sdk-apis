@@ -30,7 +30,7 @@ async function generateUniqueStreamName(): Promise<string> {
 }
 
 export const createLiveStream = async (req: Request, res: Response) => {
-  const { wallet, agendas, callType, scheduledFor } = req.body;
+  const { wallet, agendas, callType, scheduledFor, title } = req.body;
   const liveStreamAgendas = [];
 
   try {
@@ -38,8 +38,9 @@ export const createLiveStream = async (req: Request, res: Response) => {
       !wallet ||
       typeof wallet !== "string" ||
       !callType ||
-      !Array.isArray(agendas) ||
-      agendas.length === 0
+      !title
+      // !Array.isArray(agendas) ||
+      // agendas.length === 0
     ) {
       return res.status(400).json({
         error:
@@ -87,6 +88,7 @@ export const createLiveStream = async (req: Request, res: Response) => {
     const liveStream = await db.liveStream.create({
       data: {
         name,
+        title,
         callType,
         scheduledFor: scheduledFor ? new Date(scheduledFor) : null,
         user: {

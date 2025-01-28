@@ -59,9 +59,13 @@ model LiveStream {
   id           String    @id @default(cuid())
   name         String    @unique
   userId       String
+  title        String
   callType     String
   scheduledFor DateTime?
   hasHost      Boolean   @default(false)
+  recording    Boolean   @default(false)
+  recordId     String?
+  recordLink   String?
   agenda       Agenda[]
   participants Participant[] 
 

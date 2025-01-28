@@ -17,14 +17,16 @@ async function generateUniqueStreamName() {
     return streamName;
 }
 export const createLiveStream = async (req, res) => {
-    const { wallet, agendas, callType, scheduledFor } = req.body;
+    const { wallet, agendas, callType, scheduledFor, title } = req.body;
     const liveStreamAgendas = [];
     try {
         if (!wallet ||
             typeof wallet !== "string" ||
             !callType ||
-            !Array.isArray(agendas) ||
-            agendas.length === 0) {
+            !title
+        // !Array.isArray(agendas) ||
+        // agendas.length === 0
+        ) {
             return res.status(400).json({
                 error: "Missing required fields: streamName, agendas, call type and wallet address",
             });
@@ -64,6 +66,7 @@ export const createLiveStream = async (req, res) => {
         const liveStream = await db.liveStream.create({
             data: {
                 name,
+                title,
                 callType,
                 scheduledFor: scheduledFor ? new Date(scheduledFor) : null,
                 user: {

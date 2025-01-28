@@ -51,7 +51,7 @@ const createSocketServer = (server: HttpServer) => {
 
   io.on("connection", (socket) => {
     console.log("A user connected", socket.id);
-    
+
     let currentRoom: string | null = null;
     let currentIdentity: string | null = null;
 
