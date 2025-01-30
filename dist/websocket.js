@@ -96,6 +96,9 @@ const createSocketServer = (server) => {
                 io.to(roomName).emit("actionExecutedSync", actionId);
             }
         });
+        socket.on("sendReaction", ({ roomName, reaction, sender }) => {
+            io.to(roomName).emit("receiveReaction", { reaction, sender });
+        });
         socket.on("disconnect", () => {
             if (currentRoom && currentIdentity) {
                 io.to(currentRoom).emit("participantLeft", { participantId: currentIdentity });
