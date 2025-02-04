@@ -16,7 +16,7 @@ const app = express();
 const PORT = 8001;
 const httpServer = createServer(app);
 
-export const db = new PrismaClient();
+// export const db = new PrismaClient();
 
 // Move cors before other middleware
 const corsOptions = {

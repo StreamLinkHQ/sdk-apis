@@ -1,4 +1,5 @@
-import { db, io } from "../app.js";
+import { io } from "../app.js";
+import { db } from "../prisma.js";
 import { guestRequests } from "../websocket.js";
 import { roomService, isValidWalletAddress } from "../utils/index.js";
 export const getStreamParticipants = async (req, res) => {
@@ -26,6 +27,9 @@ export const getStreamParticipants = async (req, res) => {
     catch (error) {
         console.log(error);
         res.status(500).json({ error });
+    }
+    finally {
+        await db.$disconnect();
     }
 };
 export const updateStreamParticipantTime = async (req, res) => {
@@ -97,6 +101,9 @@ export const updateStreamParticipantTime = async (req, res) => {
         console.log(error);
         res.status(500).json({ error });
     }
+    finally {
+        await db.$disconnect();
+    }
 };
 export const updateGuestPermissions = async (req, res) => {
     const { participantId, roomName, walletAddress } = req.body;
@@ -152,6 +159,9 @@ export const updateGuestPermissions = async (req, res) => {
     catch (error) {
         console.error("Failed to update participant permissions:", error);
         res.status(500).json({ error });
+    }
+    finally {
+        await db.$disconnect();
     }
 };
 export const updateTempHostPermissions = async (req, res) => {
@@ -216,5 +226,8 @@ export const updateTempHostPermissions = async (req, res) => {
     catch (error) {
         console.error("Failed to update participant permissions:", error);
         res.status(500).json({ error });
+    }
+    finally {
+        await db.$disconnect();
     }
 };

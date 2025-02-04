@@ -7,7 +7,7 @@ import {
   StreamProtocol,
 } from "livekit-server-sdk";
 import { AgendaAction } from "@prisma/client";
-import { db } from "../app.js";
+import { db } from "../prisma.js";
 import { generateMeetingLink, isValidWalletAddress, roomService, livekitHost  } from "../utils/index.js";
 
 async function generateUniqueStreamName(): Promise<string> {
@@ -128,6 +128,8 @@ export const createLiveStream = async (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ error });
+  } finally {
+    await db.$disconnect();
   }
 };
 
@@ -184,7 +186,7 @@ export const createStreamToken = async (req: Request, res: Response) => {
           where: { id: existingParticipant.id },
           data: {
             leftAt: null,
-            // userName: userName,
+            userName,
             userType,
           },
         });
@@ -236,6 +238,8 @@ export const createStreamToken = async (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ error });
+  } finally {
+    await db.$disconnect();
   }
 };
 
@@ -265,6 +269,8 @@ export const getLiveStream = async (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ error });
+  } finally {
+    await db.$disconnect();
   }
 };
 

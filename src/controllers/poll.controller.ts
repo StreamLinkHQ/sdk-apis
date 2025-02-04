@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { db } from "../app.js";
+import { db } from "../prisma.js";
 
 export const createPollResponse = async (req: Request, res: Response) => {
   const { agendaId, response, respondent } = req.body;
@@ -64,6 +64,8 @@ export const createPollResponse = async (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Failed to submit vote" });
+  } finally {
+    await db.$disconnect();
   }
 };
 
@@ -101,6 +103,8 @@ export const getPollResponses = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Failed to fetch poll results:", error);
     return res.status(500).json({ error: "Failed to fetch poll results" });
+  } finally {
+    await db.$disconnect();
   }
 };
 
@@ -141,5 +145,7 @@ export const getUserVote = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Failed to fetch user vote:", error);
     return res.status(500).json({ error: "Failed to fetch user vote" });
+  } finally {
+    await db.$disconnect();
   }
 };

@@ -1,13 +1,12 @@
 import express from "express";
 import { createServer } from "http";
-import { PrismaClient } from "@prisma/client";
 import cors from "cors";
 import { AgendaRouter, LiveStreamRouter, PaymentRouter, UserRouter, ParticipantRouter, PollRouter } from "./routes/index.js";
 import createSocketServer from "./websocket.js";
 const app = express();
 const PORT = 8001;
 const httpServer = createServer(app);
-export const db = new PrismaClient();
+// export const db = new PrismaClient();
 // Move cors before other middleware
 const corsOptions = {
     origin: ["https://thestreamlink.com", "http://localhost:5173"],

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
-import { db, io } from "../app.js";
+import { io } from "../app.js";
+import { db } from "../prisma.js";
 import { guestRequests } from "../websocket.js";
 import { roomService, isValidWalletAddress } from "../utils/index.js";
 
@@ -30,6 +31,8 @@ export const getStreamParticipants = async (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ error });
+  } finally {
+    await db.$disconnect();
   }
 };
 
@@ -114,6 +117,8 @@ export const updateStreamParticipantTime = async (
   } catch (error) {
     console.log(error);
     res.status(500).json({ error });
+  } finally {
+    await db.$disconnect();
   }
 };
 
@@ -182,6 +187,8 @@ export const updateGuestPermissions = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Failed to update participant permissions:", error);
     res.status(500).json({ error });
+  } finally {
+    await db.$disconnect();
   }
 };
 
@@ -264,5 +271,7 @@ export const updateTempHostPermissions = async (
   } catch (error) {
     console.error("Failed to update participant permissions:", error);
     res.status(500).json({ error });
+  } finally {
+    await db.$disconnect();
   }
 };

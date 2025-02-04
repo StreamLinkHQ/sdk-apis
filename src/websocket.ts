@@ -50,7 +50,7 @@ const createSocketServer = (server: HttpServer) => {
   };
 
   io.on("connection", (socket) => {
-    console.log("A user connected", socket.id);
+    // console.log("A user connected", socket.id);
 
     let currentRoom: string | null = null;
     let currentIdentity: string | null = null;
@@ -168,7 +168,7 @@ const createSocketServer = (server: HttpServer) => {
           }
         }
       }
-      console.log("A user disconnected", socket.id);
+      // console.log("A user disconnected", socket.id);
     });
   });
 

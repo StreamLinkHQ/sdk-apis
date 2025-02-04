@@ -3,6 +3,7 @@ import {
   PublicKey,
   Transaction,
   SystemProgram,
+  LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
 import {
   TOKEN_PROGRAM_ID,
@@ -12,12 +13,12 @@ import {
 } from "@solana/spl-token";
 
 import { tokenMintAccounts, connection } from "../utils/index.js";
-import { db } from "../app.js";
+import { db } from "../prisma.js";
 
 export const createTransaction = async (req: Request, res: Response) => {
   const { senderPublicKey, recipients, tokenName } = req.body;
   const companyPublicKey = "4jhQjEw1CtMkyE9PXNVMBmUNEBekpiF4XudwDjWFZsnc";
-  const feeInLamports = 0.6 * 1e9; // $0.6 in lamports
+  const feeInLamports = 0.06 * LAMPORTS_PER_SOL; // $0.06 in lamports
 
   try {
     // Validate input
@@ -189,5 +190,7 @@ export const submitTransaction = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error submitting transaction:", error);
     res.status(500).json({ error: "Failed to submit transaction" });
+  }finally {
+    await db.$disconnect();
   }
 };

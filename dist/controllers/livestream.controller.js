@@ -1,6 +1,6 @@
 import { AccessToken, EgressClient, EncodedFileOutput, StreamOutput, StreamProtocol, } from "livekit-server-sdk";
 import { AgendaAction } from "@prisma/client";
-import { db } from "../app.js";
+import { db } from "../prisma.js";
 import { generateMeetingLink, isValidWalletAddress, roomService, livekitHost } from "../utils/index.js";
 async function generateUniqueStreamName() {
     let isUnique = false;
@@ -103,6 +103,9 @@ export const createLiveStream = async (req, res) => {
         console.log(error);
         res.status(500).json({ error });
     }
+    finally {
+        await db.$disconnect();
+    }
 };
 export const createStreamToken = async (req, res) => {
     const { roomName, userType, userName, wallet } = req.body;
@@ -148,7 +151,7 @@ export const createStreamToken = async (req, res) => {
                     where: { id: existingParticipant.id },
                     data: {
                         leftAt: null,
-                        // userName: userName,
+                        userName,
                         userType,
                     },
                 });
@@ -196,6 +199,9 @@ export const createStreamToken = async (req, res) => {
         console.log(error);
         res.status(500).json({ error });
     }
+    finally {
+        await db.$disconnect();
+    }
 };
 export const getLiveStream = async (req, res) => {
     const { liveStreamId } = req.params;
@@ -222,6 +228,9 @@ export const getLiveStream = async (req, res) => {
     catch (error) {
         console.log(error);
         res.status(500).json({ error });
+    }
+    finally {
+        await db.$disconnect();
     }
 };
 export const recordLiveStream = async (req, res) => {

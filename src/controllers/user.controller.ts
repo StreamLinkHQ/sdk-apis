@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { isValidWalletAddress } from "../utils/index.js";
-import { db } from "../app.js";
+import { db } from "../prisma.js";
 
 export const createUser = async (req: Request, res: Response) => {
   try {
@@ -23,6 +23,8 @@ export const createUser = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error creating user:", error);
     res.status(500).json({ error: "An unexpected error occurred." });
+  } finally {
+    await db.$disconnect();
   }
 };
 
@@ -48,6 +50,8 @@ export const getUser = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error getting user:", error);
     res.status(500).json({ error: "An unexpected error occurred." });
+  } finally {
+    await db.$disconnect();
   }
 };
 
@@ -70,5 +74,7 @@ export const updateUser = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error getting user:", error);
     res.status(500).json({ error: "An unexpected error occurred." });
+  } finally {
+    await db.$disconnect();
   }
 };

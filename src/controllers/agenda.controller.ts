@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { AgendaAction } from "@prisma/client";
-import { db } from "../app.js";
+import { db } from "../prisma.js";
 
 export const createAgenda = async (req: Request, res: Response) => {
   const { liveStreamId } = req.params;
@@ -56,6 +56,8 @@ export const createAgenda = async (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ error });
+  } finally {
+    await db.$disconnect();
   }
 };
 
@@ -90,6 +92,8 @@ export const getLiveStreamAgenda = async (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ error });
+  } finally {
+    await db.$disconnect();
   }
 };
 
@@ -143,6 +147,8 @@ export const updateLiveStreamAgenda = async (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ error });
+  } finally {
+    await db.$disconnect();
   }
 };
 
@@ -172,5 +178,7 @@ export const deleteAgenda = async (req: Request, res: Response) => {
     res.status(500).json({
       message: "An error occurred while deleting the agenda",
     });
+  } finally {
+    await db.$disconnect();
   }
 };
