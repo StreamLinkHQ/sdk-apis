@@ -169,6 +169,14 @@ export const updateGuestPermissions = async (req: Request, res: Response) => {
         error: "Participant not found",
       });
     }
+    const livekitParticipant = await roomService.getParticipant(
+      roomName,
+      participantId
+    );
+    if (!livekitParticipant) {
+      console.error("LiveKit Participant not found:", participantId);
+      return res.status(404).json({ error: "LiveKit participant not found" });
+    }
     await db.participant.update({
       where: {
         id: participant.id,
@@ -250,7 +258,14 @@ export const updateTempHostPermissions = async (
         error: "Participant not found",
       });
     }
-
+    const livekitParticipant = await roomService.getParticipant(
+      roomName,
+      participantId
+    );
+    if (!livekitParticipant) {
+      console.error("LiveKit Participant not found:", participantId);
+      return res.status(404).json({ error: "LiveKit participant not found" });
+    }
     await db.participant.update({
       where: {
         id: participant.id,
