@@ -4,7 +4,7 @@ export const guestRequests = {};
 const createSocketServer = (server) => {
     const io = new Server(server, {
         cors: {
-            origin: ["https://thestreamlink.com", "http://localhost:5173", "https://streamlink-sdk.netlify.app/"],
+            origin: ["https://thestreamlink.com", "http://localhost:5173", "https://streamlink-sdk.netlify.app"],
         },
     });
     const activeAddons = {

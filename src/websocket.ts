@@ -28,7 +28,7 @@ export const guestRequests: { [roomName: string]: GuestRequest[] } = {};
 const createSocketServer = (server: HttpServer) => {
   const io = new Server(server, {
     cors: {
-      origin: ["https://thestreamlink.com", "http://localhost:5173", "https://streamlink-sdk.netlify.app/"],
+      origin: ["https://thestreamlink.com", "http://localhost:5173", "https://streamlink-sdk.netlify.app"],
     },
   });
   const activeAddons: Record<AddonType, AddonState> = {

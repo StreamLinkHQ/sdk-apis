@@ -9,7 +9,7 @@ const httpServer = createServer(app);
 // export const db = new PrismaClient();
 // Move cors before other middleware
 const corsOptions = {
-    origin: ["https://thestreamlink.com", "http://localhost:5173", "https://streamlink-sdk.netlify.app/"],
+    origin: ["https://thestreamlink.com", "http://localhost:5173", "https://streamlink-sdk.netlify.app"],
     methods: ["GET", "POST", "PUT", "DELETE"],
 };
 app.use(cors(corsOptions));
