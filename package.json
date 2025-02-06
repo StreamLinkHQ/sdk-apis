@@ -6,8 +6,10 @@
   "type": "module",
   "scripts": {
     "start": "tsc && node dist/app.js",
+    "build": "npx prisma generate && npm rebuild",
     "db:push": "npx prisma db push",
     "db:generate": "npx prisma generate",
+    "postinstall": "npm rebuild",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
