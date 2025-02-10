@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { AccessToken } from "livekit-server-sdk";
 import { io } from "../app.js";
 import { db } from "../prisma.js";
 import { guestRequests } from "../websocket.js";
@@ -191,7 +192,34 @@ export const updateGuestPermissions = async (req: Request, res: Response) => {
       canSubscribe: true,
     });
 
-    res.status(200).json(`Invited participant ${participantId} to speak.`);
+     // Generate a New Token for Temp-Host
+  const newAccessToken = new AccessToken(
+    process.env.LIVEKIT_API_KEY,
+    process.env.LIVEKIT_API_SECRET,
+    {
+      identity: participantId,
+      ttl: "60m",
+      metadata: JSON.stringify({
+        userName: participant.userName,
+        participantId: participant.id,
+        userType: "temp-host",
+      }),
+    }
+  );
+
+  newAccessToken.addGrant({
+    roomJoin: true,
+    room: roomName,
+    canPublish: true,
+    canSubscribe: true,
+    canPublishData: true,
+    roomRecord: false,
+  });
+
+  const token = await newAccessToken.toJwt();
+  io.to(participantId).emit("newToken", { token })
+
+  res.status(200).json(`Invited participant ${participantId} to speak.`);
   } catch (error) {
     console.error("Failed to update participant permissions:", error);
     res.status(500).json({ error });
@@ -279,6 +307,33 @@ export const updateTempHostPermissions = async (
       canPublish: false,
       canSubscribe: true,
     });
+
+         // Generate a New Token for Temp-Host
+  const newAccessToken = new AccessToken(
+    process.env.LIVEKIT_API_KEY,
+    process.env.LIVEKIT_API_SECRET,
+    {
+      identity: participantId,
+      ttl: "60m",
+      metadata: JSON.stringify({
+        userName: participant.userName,
+        participantId: participant.id,
+        userType: "temp-host",
+      }),
+    }
+  );
+
+  newAccessToken.addGrant({
+    roomJoin: true,
+    room: roomName,
+    canPublish: false,
+    canSubscribe: true,
+    canPublishData: true,
+    roomRecord: false,
+  });
+
+  const token = await newAccessToken.toJwt();
+  io.to(participantId).emit("newToken", { token })
 
     res
       .status(200)

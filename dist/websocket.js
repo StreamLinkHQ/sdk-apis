@@ -25,7 +25,7 @@ const createSocketServer = (server) => {
         }, 1000);
     };
     io.on("connection", (socket) => {
-        // console.log("A user connected", socket.id);
+        //  console.log("A user connected", socket.id);
         let currentRoom = null;
         let currentIdentity = null;
         socket.emit("addonState", activeAddons);
@@ -51,6 +51,7 @@ const createSocketServer = (server) => {
         });
         socket.on("joinRoom", (roomName, participantId) => {
             socket.join(roomName);
+            socket.join(participantId);
             currentRoom = roomName;
             currentIdentity = participantId;
             io.to(roomName).emit("participantJoined", { participantId });
@@ -119,6 +120,7 @@ const createSocketServer = (server) => {
                 }
             }
             // console.log("A user disconnected", socket.id);
+            io.to(socket.id).emit("userDisconnected");
         });
     });
     return io;

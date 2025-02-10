@@ -50,7 +50,7 @@ const createSocketServer = (server: HttpServer) => {
   };
 
   io.on("connection", (socket) => {
-    // console.log("A user connected", socket.id);
+    //  console.log("A user connected", socket.id);
 
     let currentRoom: string | null = null;
     let currentIdentity: string | null = null;
@@ -81,6 +81,8 @@ const createSocketServer = (server: HttpServer) => {
 
     socket.on("joinRoom", (roomName: string, participantId: string) => {
       socket.join(roomName);
+      socket.join(participantId);
+
       currentRoom = roomName;
       currentIdentity = participantId;
     
@@ -142,7 +144,7 @@ const createSocketServer = (server: HttpServer) => {
     socket.on("sendReaction", ({ roomName, reaction, sender }) => {
       io.to(roomName).emit("receiveReaction", { reaction, sender });
     });
-
+    
     socket.on("disconnect", () => {
       if (currentRoom && currentIdentity) {
         io.to(currentRoom).emit("participantLeft", { participantId: currentIdentity });
@@ -169,6 +171,7 @@ const createSocketServer = (server: HttpServer) => {
         }
       }
       // console.log("A user disconnected", socket.id);
+      io.to(socket.id).emit("userDisconnected");
     });
   });
 
